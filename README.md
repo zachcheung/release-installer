@@ -35,11 +35,13 @@ release-installer -url https://gitlab.example.com <REPO>
 2024/07/12 08:26:25 Installed example to /usr/local/bin
 ```
 
-* Private GitLab Repo in GitLab CI Job
+* Private GitLab Repo (in the Self-Repo CI Job)
 
 ```shell
-release-installer -url ${CI_SERVER_URL} ${CI_PROJECT_ID}
+release-installer -url $CI_SERVER_URL -token $GITLAB_TOKEN $CI_PROJECT_ID
 ```
+
+The `GITLAB_TOKEN` should be set and have at least the `read_api` scope.
 
 #### Supported Providers
 
