@@ -1,0 +1,39 @@
+version: 2
+
+builds:
+  - id: binary
+    main: .
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - '386'
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - '7'
+
+kos:
+  - build: binary
+    labels:
+      org.opencontainers.image.title: release-installer
+      org.opencontainers.image.description: A simple tool to install package from GitLab release
+      org.opencontainers.image.url: https://github.com/zachcheung/release-installer
+      org.opencontainers.image.source: https://github.com/zachcheung/release-installer
+      org.opencontainers.image.licenses: MIT
+    platforms:
+      - linux/amd64
+    tags:
+      - 'v{{ .Version }}'
+      - '{{ .FullCommit }}'
+      - latest
+    sbom: none
+    bare: true
+    preserve_import_paths: false
