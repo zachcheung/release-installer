@@ -58,7 +58,9 @@ func (g *GitLab) GetLatestRelease() (GitLabRelease, error) {
 	if err != nil {
 		return release, err
 	}
-	req.Header.Set("PRIVATE-TOKEN", g.token)
+	if g.token != "" {
+		req.Header.Set("PRIVATE-TOKEN", g.token)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -106,7 +108,9 @@ func (g *GitLab) DownloadReleaseAsset(release GitLabRelease, destDir string) (st
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("PRIVATE-TOKEN", g.token)
+	if g.token != "" {
+		req.Header.Set("PRIVATE-TOKEN", g.token)
+	}
 
 	log.Printf("Downloading %s from %s", filename, url)
 	client := &http.Client{}
