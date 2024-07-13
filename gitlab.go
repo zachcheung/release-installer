@@ -27,11 +27,12 @@ type GitLabRelease struct {
 }
 
 type GitLab struct {
-	url       string
-	apiURL    string
-	token     string
-	repo      string
-	projectID string
+	url         string
+	apiURL      string
+	token       string
+	repo        string
+	projectID   string
+	authHeaders map[string]string
 }
 
 func NewGitLab(gitlabURL, token, repo string) *GitLab {
@@ -43,12 +44,18 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 		projectID = repo
 	}
 
+	authHeaders := make(map[string]string)
+	if token != "" {
+		authHeaders["PRIVATE-TOKEN"] = token
+	}
+
 	return &GitLab{
-		url:       gitlabURL,
-		apiURL:    gitlabURL + "/api/v4",
-		token:     token,
-		repo:      repo,
-		projectID: projectID,
+		url:         gitlabURL,
+		apiURL:      gitlabURL + "/api/v4",
+		token:       token,
+		repo:        repo,
+		projectID:   projectID,
+		authHeaders: authHeaders,
 	}
 }
 
@@ -58,8 +65,8 @@ func (g *GitLab) GetLatestRelease() (GitLabRelease, error) {
 	if err != nil {
 		return release, err
 	}
-	if g.token != "" {
-		req.Header.Set("PRIVATE-TOKEN", g.token)
+	for key, value := range g.authHeaders {
+		req.Header.Set(key, value)
 	}
 
 	client := &http.Client{}
@@ -108,8 +115,8 @@ func (g *GitLab) DownloadReleaseAsset(release GitLabRelease, destDir string) (st
 	if err != nil {
 		return "", err
 	}
-	if g.token != "" {
-		req.Header.Set("PRIVATE-TOKEN", g.token)
+	for key, value := range g.authHeaders {
+		req.Header.Set(key, value)
 	}
 
 	log.Printf("Downloading %s from %s", filename, url)
