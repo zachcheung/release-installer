@@ -94,6 +94,7 @@ func (g *GitLab) DownloadReleaseAsset(release GitLabRelease, destDir string) (st
 			found = true
 			filename = link.Name
 			url = link.DirectAssetURL
+			break
 		}
 	}
 
