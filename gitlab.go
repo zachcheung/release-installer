@@ -92,7 +92,7 @@ func (g *GitLab) DownloadReleaseAsset(release GitLabRelease, destDir string) (st
 		url      string
 	)
 	for _, link := range release.Assets.Links {
-		if strings.Contains(link.Name, fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)) {
+		if strings.Contains(link.Name, fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)) && strings.HasSuffix(link.Name, ".tar.gz") {
 			found = true
 			filename = link.Name
 			url = link.DirectAssetURL
