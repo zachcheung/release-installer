@@ -74,10 +74,10 @@ func (g *GitLab) GetLatestRelease() (Release, error) {
 		return release, fmt.Errorf("No release found")
 	}
 
-	return g.ConvertRelease(releases[0]), nil
+	return g.convertRelease(releases[0]), nil
 }
 
-func (g *GitLab) ConvertRelease(gr GitLabRelease) Release {
+func (g *GitLab) convertRelease(gr GitLabRelease) Release {
 	r := Release{
 		Name:        gr.Name,
 		TagName:     gr.TagName,

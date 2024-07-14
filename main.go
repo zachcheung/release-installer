@@ -9,6 +9,7 @@ import (
 
 var (
 	installDir string
+	provider   string
 	baseURL    string
 	token      string
 	repo       string
@@ -16,6 +17,7 @@ var (
 
 func main() {
 	flag.StringVar(&installDir, "dir", "/usr/local/bin", "installation directory")
+	flag.StringVar(&provider, "provider", "gitlab", "repo provider, options: gitlab")
 	flag.StringVar(&baseURL, "url", "", "base url")
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.Parse()
@@ -26,8 +28,16 @@ func main() {
 	}
 	repo = flag.Arg(0)
 
-	gitlab := NewGitLab(baseURL, token, repo)
-	release, err := gitlab.GetLatestRelease()
+	var g RepoProvider
+	switch provider {
+	case "gitlab":
+		g = NewGitLab(baseURL, token, repo)
+	default:
+		fmt.Printf("unsupported provider: %s\n", provider)
+		os.Exit(1)
+	}
+
+	release, err := g.GetLatestRelease()
 	if err != nil {
 		log.Fatalf("Error getting latest release: %v", err)
 	}

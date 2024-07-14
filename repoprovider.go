@@ -11,3 +11,7 @@ type Release struct {
 	Assets      []Asset
 	AuthHeaders map[string]string
 }
+
+type RepoProvider interface {
+	GetLatestRelease() (Release, error)
+}
