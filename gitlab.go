@@ -3,10 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -61,16 +58,7 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 
 func (g *GitLab) GetLatestRelease() (GitLabRelease, error) {
 	var release GitLabRelease
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/projects/%s/releases?per_page=1", g.apiURL, g.projectID), nil)
-	if err != nil {
-		return release, err
-	}
-	for key, value := range g.authHeaders {
-		req.Header.Set(key, value)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := httpGet(fmt.Sprintf("%s/projects/%s/releases?per_page=1", g.apiURL, g.projectID), g.authHeaders)
 	if err != nil {
 		return release, err
 	}
@@ -111,38 +99,10 @@ func (g *GitLab) DownloadReleaseAsset(release GitLabRelease, destDir string) (st
 		return "", fmt.Errorf("No valid asset found")
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return "", err
-	}
-	for key, value := range g.authHeaders {
-		req.Header.Set(key, value)
-	}
-
-	log.Printf("Downloading %s from %s", filename, url)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Failed to download %s, status code: %d", url, resp.StatusCode)
-	}
-
 	destPath := filepath.Join(destDir, filename)
-	file, err := os.Create(destPath)
-	if err != nil {
+	if err := download(url, destPath, g.authHeaders); err != nil {
 		return "", err
 	}
-	defer file.Close()
-
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
-		return "", err
-	}
-	log.Printf("Downloaded %s", filename)
 
 	return destPath, nil
 }
