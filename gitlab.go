@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path/filepath"
-	"runtime"
-	"strings"
 )
 
 type GitLabAssetsLink struct {
@@ -56,8 +53,8 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 	}
 }
 
-func (g *GitLab) GetLatestRelease() (GitLabRelease, error) {
-	var release GitLabRelease
+func (g *GitLab) GetLatestRelease() (Release, error) {
+	var release Release
 	resp, err := httpGet(fmt.Sprintf("%s/projects/%s/releases?per_page=1", g.apiURL, g.projectID), g.authHeaders)
 	if err != nil {
 		return release, err
@@ -77,32 +74,21 @@ func (g *GitLab) GetLatestRelease() (GitLabRelease, error) {
 		return release, fmt.Errorf("No release found")
 	}
 
-	return releases[0], nil
+	return g.ConvertRelease(releases[0]), nil
 }
 
-func (g *GitLab) DownloadReleaseAsset(release GitLabRelease, destDir string) (string, error) {
-	var (
-		found    bool
-		filename string
-		url      string
-	)
-	for _, link := range release.Assets.Links {
-		if strings.Contains(link.Name, fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)) && strings.HasSuffix(link.Name, ".tar.gz") {
-			found = true
-			filename = link.Name
-			url = link.DirectAssetURL
-			break
+func (g *GitLab) ConvertRelease(gr GitLabRelease) Release {
+	r := Release{
+		Name:        gr.Name,
+		TagName:     gr.TagName,
+		AuthHeaders: g.authHeaders,
+	}
+	for _, link := range gr.Assets.Links {
+		asset := Asset{
+			Name: link.Name,
+			URL:  link.DirectAssetURL,
 		}
+		r.Assets = append(r.Assets, asset)
 	}
-
-	if !found {
-		return "", fmt.Errorf("No valid asset found")
-	}
-
-	destPath := filepath.Join(destDir, filename)
-	if err := download(url, destPath, g.authHeaders); err != nil {
-		return "", err
-	}
-
-	return destPath, nil
+	return r
 }

@@ -38,7 +38,7 @@ func main() {
 	}
 	defer os.RemoveAll(tempDir)
 
-	archivePath, err := gitlab.DownloadReleaseAsset(release, tempDir)
+	archivePath, err := downloadReleaseAsset(release, tempDir)
 	if err != nil {
 		log.Fatalf("Error downloading asset: %v", err)
 	}

@@ -11,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
+	"strings"
 )
 
 func isNumeric(s string) bool {
@@ -73,6 +75,34 @@ func extractAndInstallExecutables(archivePath, destDir string) error {
 	}
 
 	return nil
+}
+
+func downloadReleaseAsset(release Release, destDir string) (string, error) {
+	var (
+		found    bool
+		filename string
+		url      string
+	)
+	for _, asset := range release.Assets {
+		name := asset.Name
+		if strings.Contains(name, fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)) && strings.HasSuffix(name, ".tar.gz") {
+			found = true
+			filename = name
+			url = asset.URL
+			break
+		}
+	}
+
+	if !found {
+		return "", fmt.Errorf("No valid asset found")
+	}
+
+	destPath := filepath.Join(destDir, filename)
+	if err := download(url, destPath, release.AuthHeaders); err != nil {
+		return "", err
+	}
+
+	return destPath, nil
 }
 
 func download(url, destPath string, headers map[string]string) error {
