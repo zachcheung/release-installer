@@ -81,26 +81,37 @@ func extractAndInstallExecutables(archivePath, destDir string) error {
 
 func downloadReleaseAsset(release Release, destDir string) (string, error) {
 	var (
-		found    bool
-		filename string
-		url      string
+		matchedAsset  Asset
+		matchedAssets []Asset
 	)
 	for _, asset := range release.Assets {
-		name := asset.Name
-		if packageRe.MatchString(name) && strings.HasSuffix(name, ".tar.gz") {
-			found = true
-			filename = name
-			url = asset.URL
-			break
+		if packageRe.MatchString(asset.Name) {
+			matchedAssets = append(matchedAssets, asset)
 		}
 	}
 
-	if !found {
+	switch len(matchedAssets) {
+	case 0:
 		return "", fmt.Errorf("No valid asset found")
+	case 1:
+		matchedAsset = matchedAssets[0]
+	default:
+		var found bool
+		for _, asset := range matchedAssets {
+			if strings.HasSuffix(asset.Name, ".tar.gz") {
+				found = true
+				matchedAsset = asset
+				break
+			}
+		}
+
+		if !found {
+			return "", fmt.Errorf("No valid asset found in matched assets")
+		}
 	}
 
-	destPath := filepath.Join(destDir, filename)
-	if err := download(url, destPath, release.AuthHeaders); err != nil {
+	destPath := filepath.Join(destDir, matchedAsset.Name)
+	if err := download(matchedAsset.URL, destPath, release.AuthHeaders); err != nil {
 		return "", err
 	}
 
