@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+var supportedArchiveFormat = []string{
+	".tar.gz",
+	".tgz",
+}
+
 func isNumeric(s string) bool {
 	_, err := strconv.Atoi(s)
 	return err == nil
@@ -100,7 +105,7 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 	default:
 		var found bool
 		for _, asset := range matchedAssets {
-			if strings.HasSuffix(asset.Name, ".tar.gz") {
+			if isSupportedArchiveFormat(asset.Name) {
 				found = true
 				matchedAsset = asset
 				break
@@ -198,4 +203,14 @@ func addExecutePermission(fpath string) error {
 	}
 
 	return nil
+}
+
+func isSupportedArchiveFormat(name string) bool {
+	name = strings.ToLower(name)
+	for _, suffix := range supportedArchiveFormat {
+		if strings.HasSuffix(name, suffix) {
+			return true
+		}
+	}
+	return false
 }

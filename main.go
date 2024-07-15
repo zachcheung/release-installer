@@ -75,7 +75,7 @@ func main() {
 		log.Fatalf("Error downloading asset: %v", err)
 	}
 
-	if strings.HasSuffix(fpath, ".tar.gz") {
+	if isSupportedArchiveFormat(fpath) {
 		if err := extractAndInstallExecutables(fpath, installDir); err != nil {
 			log.Fatalf("Error installing package: %v", err)
 		}
