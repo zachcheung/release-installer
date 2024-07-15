@@ -16,6 +16,8 @@ import (
 	"strings"
 )
 
+var packageRe = regexp.MustCompile(fmt.Sprintf("%s[_-]%s", runtime.GOOS, runtime.GOARCH))
+
 func isNumeric(s string) bool {
 	_, err := strconv.Atoi(s)
 	return err == nil
@@ -85,7 +87,7 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 	)
 	for _, asset := range release.Assets {
 		name := asset.Name
-		if strings.Contains(name, fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)) && strings.HasSuffix(name, ".tar.gz") {
+		if packageRe.MatchString(name) && strings.HasSuffix(name, ".tar.gz") {
 			found = true
 			filename = name
 			url = asset.URL
