@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 
 func main() {
 	flag.StringVar(&installDir, "dir", "/usr/local/bin", "installation directory")
-	flag.StringVar(&provider, "provider", "gitlab", "repo provider, options: github, gitlab")
+	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab")
 	flag.StringVar(&baseURL, "url", "", "base url")
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.Parse()
@@ -27,6 +28,13 @@ func main() {
 		os.Exit(1)
 	}
 	repo = flag.Arg(0)
+
+	if provider == "gitlab" && baseURL == "" {
+		baseURL = "https://gitlab.com"
+	}
+	if strings.Contains(strings.ToLower(baseURL), "gitlab") && provider == "github" {
+		provider = "gitlab"
+	}
 
 	var g RepoProvider
 	switch provider {
