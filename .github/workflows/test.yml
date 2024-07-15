@@ -23,7 +23,9 @@ jobs:
         run: go build -v ./...
       - name: Test
         run: go test -v ./...
-      - name: Run installer for public GitHub repo
+      - name: Run installer for public GitHub repo (package in the root directory)
         run: ./release-installer zachcheung/release-installer
+      - name: Run installer for public GitHub repo (package in the subdirectory)
+        run: ./release-installer prometheus/node_exporter
       - name: Run installer for public GitLab repo
         run: ./release-installer -provider gitlab goreleaser/example
