@@ -19,7 +19,7 @@ var (
 func main() {
 	flag.StringVar(&installDir, "dir", "/usr/local/bin", "installation directory")
 	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab")
-	flag.StringVar(&baseURL, "url", "", "base url")
+	flag.StringVar(&baseURL, "url", "", "base url, e.g., https://gitlab.example.com")
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.Parse()
 
