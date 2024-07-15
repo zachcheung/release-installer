@@ -55,14 +55,15 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 
 func (g *GitLab) GetLatestRelease() (Release, error) {
 	var release Release
-	resp, err := httpGet(fmt.Sprintf("%s/projects/%s/releases?per_page=1", g.apiURL, g.projectID), g.authHeaders)
+	url := fmt.Sprintf("%s/projects/%s/releases?per_page=1", g.apiURL, g.projectID)
+	resp, err := httpGet(url, g.authHeaders)
 	if err != nil {
 		return release, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return release, fmt.Errorf("Failed to fetch releases, status code: %d", resp.StatusCode)
+		return release, fmt.Errorf("Failed to fetch releases, status code: %d, url: %s", resp.StatusCode, url)
 	}
 
 	var releases []GitLabRelease
