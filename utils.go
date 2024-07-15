@@ -131,14 +131,7 @@ func download(url, destPath string, headers map[string]string) error {
 		return fmt.Errorf("Failed to download %s, status code: %d", url, resp.StatusCode)
 	}
 
-	file, err := os.Create(destPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
+	if err := copyReader(destPath, resp.Body); err != nil {
 		return err
 	}
 	log.Printf("Downloaded %s", filename)
@@ -157,4 +150,50 @@ func httpGet(url string, headers map[string]string) (*http.Response, error) {
 
 	client := &http.Client{}
 	return client.Do(req)
+}
+
+func copyFile(dst, src string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	return copyReader(dst, srcFile)
+}
+
+func copyReader(dst string, src io.Reader) error {
+	file, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, src)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func addExecutePermission(fpath string) error {
+	file, err := os.Open(fpath)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("Failed to get file info: %v", err)
+	}
+
+	currentMode := info.Mode()
+	newMode := currentMode | 0111
+	if err := file.Chmod(newMode); err != nil {
+		return fmt.Errorf("Failed to change file mode: %v", err)
+	}
+
+	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -58,11 +59,25 @@ func main() {
 	}
 	defer os.RemoveAll(tempDir)
 
-	archivePath, err := downloadReleaseAsset(release, tempDir)
+	fpath, err := downloadReleaseAsset(release, tempDir)
 	if err != nil {
 		log.Fatalf("Error downloading asset: %v", err)
 	}
-	if err := extractAndInstallExecutables(archivePath, installDir); err != nil {
-		log.Fatalf("Error installing package: %v", err)
+
+	if strings.HasSuffix(fpath, ".tar.gz") {
+		if err := extractAndInstallExecutables(fpath, installDir); err != nil {
+			log.Fatalf("Error installing package: %v", err)
+		}
+	} else {
+		// use repo base as filename
+		name := filepath.Base(repo)
+		destPath := filepath.Join(installDir, name)
+		if err := copyFile(destPath, fpath); err != nil {
+			log.Fatalf("Error installing package: %v", err)
+		}
+		if err := addExecutePermission(destPath); err != nil {
+			log.Fatalf("Error adding execute permission: %v", err)
+		}
+		log.Printf("Installed %s to %s", name, installDir)
 	}
 }
