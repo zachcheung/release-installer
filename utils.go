@@ -16,8 +16,6 @@ import (
 	"strings"
 )
 
-var packageRe = regexp.MustCompile(fmt.Sprintf("%s[_-]%s", runtime.GOOS, runtime.GOARCH))
-
 func isNumeric(s string) bool {
 	_, err := strconv.Atoi(s)
 	return err == nil
@@ -85,7 +83,7 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 		matchedAssets []Asset
 	)
 	for _, asset := range release.Assets {
-		if packageRe.MatchString(asset.Name) {
+		if matchAsset(asset.Name) {
 			matchedAssets = append(matchedAssets, asset)
 		}
 	}
@@ -196,4 +194,19 @@ func addExecutePermission(fpath string) error {
 	}
 
 	return nil
+}
+
+func matchAsset(name string) bool {
+	var matchedOS, matchedArch bool
+	lowerName := strings.ToLower(name)
+	if strings.Contains(lowerName, runtime.GOOS) {
+		matchedOS = true
+	}
+	if strings.Contains(lowerName, runtime.GOARCH) {
+		matchedArch = true
+	} else if runtime.GOARCH == "amd64" && strings.Contains(lowerName, "x86_64") {
+		matchedArch = true
+	}
+
+	return matchedOS && matchedArch
 }
