@@ -89,7 +89,12 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 
 	switch len(matchedAssets) {
 	case 0:
-		return "", fmt.Errorf("No valid asset found")
+		if len(release.Assets) == 1 {
+			// iamseth/oracledb_exporter: oracledb_exporter.tar.gz
+			matchedAsset = release.Assets[0]
+		} else {
+			return "", fmt.Errorf("No valid asset found")
+		}
 	case 1:
 		matchedAsset = matchedAssets[0]
 	default:
