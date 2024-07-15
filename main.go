@@ -17,7 +17,7 @@ var (
 
 func main() {
 	flag.StringVar(&installDir, "dir", "/usr/local/bin", "installation directory")
-	flag.StringVar(&provider, "provider", "gitlab", "repo provider, options: gitlab")
+	flag.StringVar(&provider, "provider", "gitlab", "repo provider, options: github, gitlab")
 	flag.StringVar(&baseURL, "url", "", "base url")
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.Parse()
@@ -30,6 +30,8 @@ func main() {
 
 	var g RepoProvider
 	switch provider {
+	case "github":
+		g = NewGitHub(token, repo)
 	case "gitlab":
 		g = NewGitLab(baseURL, token, repo)
 	default:
