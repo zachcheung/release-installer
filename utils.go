@@ -59,7 +59,7 @@ func extractAndInstallExecutables(archivePath, destDir string) error {
 		// Check if it is regulare executable file
 		if header.Typeflag == tar.TypeReg && header.Mode&0111 != 0 {
 			name := header.Name
-			outFile, err := os.Create(filepath.Join(destDir, name))
+			outFile, err := os.Create(filepath.Join(destDir, filepath.Base(name)))
 			if err != nil {
 				return err
 			}
