@@ -1,5 +1,9 @@
 package main
 
+import "errors"
+
+var ErrNoRelease = errors.New("No release found")
+
 type Asset struct {
 	Name string
 	URL  string

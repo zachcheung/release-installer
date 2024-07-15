@@ -72,7 +72,7 @@ func (g *GitLab) GetLatestRelease() (Release, error) {
 	}
 
 	if len(releases) == 0 {
-		return release, fmt.Errorf("No release found")
+		return release, ErrNoRelease
 	}
 
 	return g.convertRelease(releases[0]), nil

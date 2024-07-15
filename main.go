@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -50,7 +51,17 @@ func main() {
 
 	release, err := g.GetLatestRelease()
 	if err != nil {
-		log.Fatalf("Error getting latest release: %v", err)
+		if errors.Is(err, ErrNoRelease) {
+			log.Print("No release found")
+			return
+		} else {
+			log.Fatalf("Error getting latest release: %v", err)
+		}
+	}
+
+	if len(release.Assets) == 0 {
+		log.Print("Empty release assets")
+		return
 	}
 
 	tempDir, err := os.MkdirTemp("", "release-installer")
