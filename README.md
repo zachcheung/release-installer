@@ -1,6 +1,6 @@
 # Release Installer
 
-A simple tool to install package from GitLab release.
+A simple tool to install packages from GitHub/GitLab releases. Tested with most of the [Prometheus exporters](https://raw.githubusercontent.com/prometheus/docs/c725947ff1f4aac33ea8664c9dc413ab93fd3ab4/content/docs/instrumenting/exporters.md).
 
 ## Installation
 
@@ -21,7 +21,13 @@ go install github.com/zachcheung/release-installer@latest
 ## Usage
 
 ```shell
-release-installer -url https://gitlab.example.com <REPO>
+release-installer <REPO>
+```
+
+It is recommended to test in a container before installing a package.
+
+```shell
+docker run --rm ghcr.io/zachcheung/release-installer <REPO>
 ```
 
 #### Example
@@ -38,7 +44,7 @@ release-installer -url https://gitlab.example.com <REPO>
 * Private GitHub Repo
 
 ```shell
-release-installer -token <TOKEN> <PRIVATE_TOKEN>
+release-installer -token <TOKEN> <PRIVATE_REPO>
 ```
 
 The token should have the `repo` scope if using `Personal access tokens (classic)`.
