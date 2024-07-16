@@ -53,9 +53,13 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 
 func (g *GitLab) GetLatestRelease() (Release, error) {
 	// https://docs.gitlab.com/ee/api/releases/#get-the-latest-release
-	var gr GitLabRelease
 	url := fmt.Sprintf("%s/projects/%s/releases/permalink/latest", g.apiURL, g.projectID)
+	return g.getRelease(url)
+}
 
+func (g *GitLab) getRelease(url string) (Release, error) {
+	// https://docs.gitlab.com/ee/api/releases/#get-the-latest-release
+	var gr GitLabRelease
 	if err := GetRelease(url, g.authHeaders, &gr); err != nil {
 		return Release{}, err
 	}
