@@ -84,10 +84,10 @@ func extractAndInstallExecutables(archivePath, destDir string) error {
 func downloadReleaseAsset(release Release, destDir string) (string, error) {
 	var (
 		matchedAsset  Asset
-		matchedAssets []Asset
+		matchedAssets Assets
 	)
 	for _, asset := range release.Assets {
-		if matchAsset(asset.Name) {
+		if MatchAsset(asset.Name) {
 			matchedAssets = append(matchedAssets, asset)
 		}
 	}
@@ -98,23 +98,38 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 			// iamseth/oracledb_exporter: oracledb_exporter.tar.gz
 			matchedAsset = release.Assets[0]
 		} else {
-			return "", fmt.Errorf("No valid asset found")
+			var assets Assets
+			for _, asset := range release.Assets {
+				if !isIgnoredFile(asset.Name) {
+					assets = append(assets, asset)
+				}
+			}
+			if len(assets) == 1 {
+				// infraly/openstack_client_exporter: openstack_client_exporter, openstack_client_exporter.sha256sum
+				matchedAsset = assets[0]
+			} else {
+				return "", fmt.Errorf("No valid asset found in assets: %s", assets.JoinName())
+			}
 		}
 	case 1:
 		matchedAsset = matchedAssets[0]
 	default:
-		var found bool
+		var supportedAssets Assets
 		for _, asset := range matchedAssets {
 			if isSupportedArchiveFormat(asset.Name) {
-				found = true
-				matchedAsset = asset
-				break
+				supportedAssets = append(supportedAssets, asset)
 			}
 		}
 
-		if !found {
-			return "", fmt.Errorf("No valid asset found in matched assets")
+		switch len(supportedAssets) {
+		case 0:
+			return "", fmt.Errorf("No supported asset found in matched assets: %s", matchedAssets.JoinName())
+		case 1:
+			matchedAsset = supportedAssets[0]
+		default:
+			return "", fmt.Errorf("Multiple supported assets in matched assets: %s", supportedAssets.JoinName())
 		}
+
 	}
 
 	destPath := filepath.Join(destDir, matchedAsset.Name)

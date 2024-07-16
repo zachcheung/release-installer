@@ -89,6 +89,6 @@ func main() {
 		if err := addExecutePermission(destPath); err != nil {
 			log.Fatalf("Error adding execute permission: %v", err)
 		}
-		log.Printf("Installed %s to %s", name, installDir)
+		log.Printf("Installed %s as %s", filepath.Base(fpath), filepath.Join(installDir, name))
 	}
 }
