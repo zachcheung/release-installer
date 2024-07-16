@@ -31,6 +31,10 @@ func main() {
 	}
 	repo = flag.Arg(0)
 
+	if err := os.MkdirAll(installDir, 0755); err != nil {
+		log.Fatalf("Error creating directory: %v", err)
+	}
+
 	if provider == "gitlab" && baseURL == "" {
 		baseURL = "https://gitlab.com"
 	}
