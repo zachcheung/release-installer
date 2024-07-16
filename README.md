@@ -1,6 +1,6 @@
 # Release Installer
 
-A simple tool to install packages from GitHub/GitLab releases. Tested with most of the [Prometheus exporters](https://raw.githubusercontent.com/prometheus/docs/c725947ff1f4aac33ea8664c9dc413ab93fd3ab4/content/docs/instrumenting/exporters.md).
+A simple tool to install packages from GitHub/GitLab releases. Tested with most of the [Prometheus exporters](https://github.com/prometheus/docs/blob/c725947ff1f4aac33ea8664c9dc413ab93fd3ab4/content/docs/instrumenting/exporters.md).
 
 ## Installation
 
