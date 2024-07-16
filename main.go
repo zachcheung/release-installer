@@ -26,7 +26,7 @@ func main() {
 	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab")
 	flag.StringVar(&baseURL, "url", "", "base url, e.g., https://gitlab.example.com")
 	flag.StringVar(&token, "token", "", "token for private repo")
-	flag.StringVar(&tag, "tag", "", "tag name")
+	flag.StringVar(&tag, "tag", "", "tag name, v can be omitted")
 	flag.BoolVar(&printVersion, "version", false, "print version")
 	flag.Parse()
 
@@ -71,6 +71,11 @@ func main() {
 		release, err = g.GetLatestRelease()
 	} else {
 		release, err = g.GetTaggedRelease(tag)
+		if err != nil && errors.Is(err, ErrNoRelease) && !strings.HasPrefix(tag, "v") {
+			// try again with v prefix
+			vTag := "v" + tag
+			release, err = g.GetTaggedRelease(vTag)
+		}
 	}
 	if err != nil {
 		if errors.Is(err, ErrNoRelease) {
