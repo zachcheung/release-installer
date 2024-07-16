@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -18,6 +19,7 @@ import (
 var supportedArchiveFormat = []string{
 	".tar.gz",
 	".tgz",
+	".zip",
 }
 
 func isNumeric(s string) bool {
@@ -35,47 +37,81 @@ func urlEncode(s string) string {
 }
 
 func extractAndInstallExecutables(archivePath, destDir string) error {
-	file, err := os.Open(archivePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	gzr, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
-
-	tr := tar.NewReader(gzr)
-
-	for {
-		header, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
+	install := func(name string, r io.Reader, mode os.FileMode) error {
+		outFile, err := os.Create(filepath.Join(destDir, filepath.Base(name)))
 		if err != nil {
 			return err
 		}
+		if _, err := io.Copy(outFile, r); err != nil {
+			return err
+		}
+		defer outFile.Close()
 
-		// Check if it is regulare executable file
-		if header.Typeflag == tar.TypeReg && header.Mode&0111 != 0 {
-			name := header.Name
-			outFile, err := os.Create(filepath.Join(destDir, filepath.Base(name)))
+		if err := outFile.Chmod(mode); err != nil {
+			return err
+		}
+
+		log.Printf("Installed %s to %s", name, destDir)
+
+		return nil
+	}
+
+	lowerSrc := strings.ToLower(archivePath)
+	if strings.HasSuffix(lowerSrc, ".tar.gz") || strings.HasSuffix(lowerSrc, ".tgz") {
+		// gzip tar
+		file, err := os.Open(archivePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		gzr, err := gzip.NewReader(file)
+		if err != nil {
+			return err
+		}
+		defer gzr.Close()
+
+		tr := tar.NewReader(gzr)
+
+		for {
+			header, err := tr.Next()
+			if err == io.EOF {
+				break
+			}
 			if err != nil {
 				return err
 			}
-			if _, err := io.Copy(outFile, tr); err != nil {
-				return err
-			}
-			defer outFile.Close()
 
-			if err := outFile.Chmod(os.FileMode(header.Mode)); err != nil {
-				return err
+			// Check if it is regulare executable file
+			if header.Typeflag == tar.TypeReg && header.Mode&0111 != 0 {
+				if err := install(header.Name, tr, os.FileMode(header.Mode)); err != nil {
+					return err
+				}
 			}
-
-			log.Printf("Installed %s to %s", name, destDir)
 		}
+	} else if strings.HasSuffix(lowerSrc, ".zip") {
+		// zip
+		r, err := zip.OpenReader(archivePath)
+		if err != nil {
+			return err
+		}
+		defer r.Close()
+
+		for _, file := range r.File {
+			if fh := file.FileHeader; !fh.FileInfo().IsDir() && fh.Mode()&0111 != 0 {
+				rc, err := file.Open()
+				if err != nil {
+					return err
+				}
+				defer rc.Close()
+
+				if err := install(fh.Name, rc, os.FileMode(fh.Mode())); err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		return fmt.Errorf("Unsupported archive file: %s", filepath.Base(archivePath))
 	}
 
 	return nil

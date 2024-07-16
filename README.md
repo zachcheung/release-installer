@@ -78,6 +78,7 @@ Token is required when repo is private.
 #### Supported Compressed Package
 
 * gzip
+* zip
 
 ## License
 
