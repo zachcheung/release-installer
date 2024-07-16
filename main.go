@@ -11,11 +11,13 @@ import (
 )
 
 var (
-	installDir string
-	provider   string
-	baseURL    string
-	token      string
-	repo       string
+	installDir   string
+	provider     string
+	baseURL      string
+	token        string
+	repo         string
+	printVersion bool
+	version      string
 )
 
 func main() {
@@ -23,7 +25,13 @@ func main() {
 	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab")
 	flag.StringVar(&baseURL, "url", "", "base url, e.g., https://gitlab.example.com")
 	flag.StringVar(&token, "token", "", "token for private repo")
+	flag.BoolVar(&printVersion, "version", false, "print version")
 	flag.Parse()
+
+	if printVersion {
+		fmt.Println(version)
+		return
+	}
 
 	if flag.NArg() == 0 {
 		fmt.Println("Missing repo")
