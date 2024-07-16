@@ -27,7 +27,7 @@ release-installer <REPO>
 It is recommended to test in a container before installing a package.
 
 ```shell
-docker run --rm ghcr.io/zachcheung/release-installer <REPO>
+docker run --rm ghcr.io/zachcheung/release-installer -dir /tmp <REPO>
 ```
 
 #### Example
