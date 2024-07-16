@@ -31,8 +31,8 @@ kos:
     platforms:
       - linux/amd64
     tags:
-      - v{{ .Version }}
-      - {{ .FullCommit }}
+      - 'v{{ .Version }}'
+      - '{{ .FullCommit }}'
       - latest
     sbom: none
     bare: true
