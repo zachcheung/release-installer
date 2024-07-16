@@ -34,6 +34,7 @@ type Release struct {
 
 type RepoProvider interface {
 	GetLatestRelease() (Release, error)
+	GetTaggedRelease(tag string) (Release, error)
 }
 
 func GetRelease(url string, headers map[string]string, target interface{}) error {

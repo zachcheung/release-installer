@@ -42,6 +42,12 @@ func (g *GitHub) GetLatestRelease() (Release, error) {
 	return g.getRelease(url)
 }
 
+func (g *GitHub) GetTaggedRelease(tag string) (Release, error) {
+	// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-a-release-by-tag-name
+	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/tags/%s", g.repo, tag)
+	return g.getRelease(url)
+}
+
 func (g *GitHub) getRelease(url string) (Release, error) {
 	var gr GitHubRelease
 	if err := GetRelease(url, g.authHeaders, &gr); err != nil {

@@ -29,3 +29,5 @@ jobs:
         run: ./release-installer prometheus/node_exporter
       - name: Run installer for public GitLab repo
         run: ./release-installer -provider gitlab goreleaser/example
+      - name: Run installer for public GitHub repo with tag
+        run: ./release-installer -tag v0.5.0 zachcheung/release-installer

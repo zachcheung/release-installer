@@ -57,6 +57,12 @@ func (g *GitLab) GetLatestRelease() (Release, error) {
 	return g.getRelease(url)
 }
 
+func (g *GitLab) GetTaggedRelease(tag string) (Release, error) {
+	// https://docs.gitlab.com/ee/api/releases/#get-a-release-by-a-tag-name
+	url := fmt.Sprintf("%s/projects/%s/releases/%s", g.apiURL, g.projectID, tag)
+	return g.getRelease(url)
+}
+
 func (g *GitLab) getRelease(url string) (Release, error) {
 	// https://docs.gitlab.com/ee/api/releases/#get-the-latest-release
 	var gr GitLabRelease

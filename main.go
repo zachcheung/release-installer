@@ -15,6 +15,7 @@ var (
 	provider     string
 	baseURL      string
 	token        string
+	tag          string
 	repo         string
 	printVersion bool
 	version      string
@@ -25,6 +26,7 @@ func main() {
 	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab")
 	flag.StringVar(&baseURL, "url", "", "base url, e.g., https://gitlab.example.com")
 	flag.StringVar(&token, "token", "", "token for private repo")
+	flag.StringVar(&tag, "tag", "", "tag name")
 	flag.BoolVar(&printVersion, "version", false, "print version")
 	flag.Parse()
 
@@ -61,13 +63,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	release, err := g.GetLatestRelease()
+	var (
+		release Release
+		err     error
+	)
+	if tag == "" {
+		release, err = g.GetLatestRelease()
+	} else {
+		release, err = g.GetTaggedRelease(tag)
+	}
 	if err != nil {
 		if errors.Is(err, ErrNoRelease) {
 			log.Print("No release found")
 			return
 		} else {
-			log.Fatalf("Error getting latest release: %v", err)
+			log.Fatalf("Error getting release: %v", err)
 		}
 	}
 
