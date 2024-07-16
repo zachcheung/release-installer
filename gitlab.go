@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type GitLabAssetsLink struct {
@@ -54,25 +52,12 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 }
 
 func (g *GitLab) GetLatestRelease() (Release, error) {
-	var release Release
-	url := fmt.Sprintf("%s/projects/%s/releases/permalink/latest", g.apiURL, g.projectID)
-	resp, err := httpGet(url, g.authHeaders)
-	if err != nil {
-		return release, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusNotFound {
-			return release, ErrNoRelease
-		} else {
-			return release, fmt.Errorf("Failed to fetch release, status code: %d, url: %s", resp.StatusCode, url)
-		}
-	}
-
+	// https://docs.gitlab.com/ee/api/releases/#get-the-latest-release
 	var gr GitLabRelease
-	if err := json.NewDecoder(resp.Body).Decode(&gr); err != nil {
-		return release, err
+	url := fmt.Sprintf("%s/projects/%s/releases/permalink/latest", g.apiURL, g.projectID)
+
+	if err := GetRelease(url, g.authHeaders, &gr); err != nil {
+		return Release{}, err
 	}
 
 	return g.convertRelease(gr), nil

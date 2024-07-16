@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type GitHubAsset struct {
@@ -39,25 +37,11 @@ func NewGitHub(token, repo string) *GitHub {
 }
 
 func (g *GitHub) GetLatestRelease() (Release, error) {
-	var release Release
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", g.repo)
-	resp, err := httpGet(url, g.authHeaders)
-	if err != nil {
-		return release, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusNotFound {
-			return release, ErrNoRelease
-		} else {
-			return release, fmt.Errorf("Failed to fetch release, status code: %d, url: %s", resp.StatusCode, url)
-		}
-	}
-
+	// https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-the-latest-release
 	var gr GitHubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&gr); err != nil {
-		return release, err
+	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", g.repo)
+	if err := GetRelease(url, g.authHeaders, &gr); err != nil {
+		return Release{}, err
 	}
 
 	return g.convertRelease(gr), nil

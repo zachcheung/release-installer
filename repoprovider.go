@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"strings"
 )
 
@@ -31,4 +34,25 @@ type Release struct {
 
 type RepoProvider interface {
 	GetLatestRelease() (Release, error)
+}
+
+func GetRelease(url string, headers map[string]string, target interface{}) error {
+	resp, err := httpGet(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return ErrNoRelease
+		}
+		return fmt.Errorf("failed to fetch release, status code: %d, url: %s", resp.StatusCode, url)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return err
+	}
+
+	return nil
 }
