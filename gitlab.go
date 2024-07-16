@@ -55,7 +55,7 @@ func NewGitLab(gitlabURL, token, repo string) *GitLab {
 
 func (g *GitLab) GetLatestRelease() (Release, error) {
 	var release Release
-	url := fmt.Sprintf("%s/projects/%s/releases?per_page=1", g.apiURL, g.projectID)
+	url := fmt.Sprintf("%s/projects/%s/releases/permalink/latest", g.apiURL, g.projectID)
 	resp, err := httpGet(url, g.authHeaders)
 	if err != nil {
 		return release, err
@@ -63,19 +63,19 @@ func (g *GitLab) GetLatestRelease() (Release, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return release, fmt.Errorf("Failed to fetch releases, status code: %d, url: %s", resp.StatusCode, url)
+		if resp.StatusCode == http.StatusNotFound {
+			return release, ErrNoRelease
+		} else {
+			return release, fmt.Errorf("Failed to fetch release, status code: %d, url: %s", resp.StatusCode, url)
+		}
 	}
 
-	var releases []GitLabRelease
-	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+	var gr GitLabRelease
+	if err := json.NewDecoder(resp.Body).Decode(&gr); err != nil {
 		return release, err
 	}
 
-	if len(releases) == 0 {
-		return release, ErrNoRelease
-	}
-
-	return g.convertRelease(releases[0]), nil
+	return g.convertRelease(gr), nil
 }
 
 func (g *GitLab) convertRelease(gr GitLabRelease) Release {

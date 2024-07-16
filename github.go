@@ -40,7 +40,7 @@ func NewGitHub(token, repo string) *GitHub {
 
 func (g *GitHub) GetLatestRelease() (Release, error) {
 	var release Release
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases?per_page=1", g.repo)
+	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", g.repo)
 	resp, err := httpGet(url, g.authHeaders)
 	if err != nil {
 		return release, err
@@ -48,19 +48,19 @@ func (g *GitHub) GetLatestRelease() (Release, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return release, fmt.Errorf("Failed to fetch releases, status code: %d, url: %s", resp.StatusCode, url)
+		if resp.StatusCode == http.StatusNotFound {
+			return release, ErrNoRelease
+		} else {
+			return release, fmt.Errorf("Failed to fetch release, status code: %d, url: %s", resp.StatusCode, url)
+		}
 	}
 
-	var releases []GitHubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+	var gr GitHubRelease
+	if err := json.NewDecoder(resp.Body).Decode(&gr); err != nil {
 		return release, err
 	}
 
-	if len(releases) == 0 {
-		return release, ErrNoRelease
-	}
-
-	return g.convertRelease(releases[0]), nil
+	return g.convertRelease(gr), nil
 }
 
 func (g *GitHub) convertRelease(gr GitHubRelease) Release {
