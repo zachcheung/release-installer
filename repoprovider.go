@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -26,10 +27,11 @@ func (as Assets) JoinName() string {
 }
 
 type Release struct {
-	Name        string
-	TagName     string
-	Assets      []Asset
-	AuthHeaders map[string]string
+	Name         string
+	TagName      string
+	Assets       []Asset
+	AuthHeaders  map[string]string
+	AssetPattern *regexp.Regexp
 }
 
 type RepoProvider interface {

@@ -122,50 +122,69 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 		matchedAsset  Asset
 		matchedAssets Assets
 	)
+
+	var matchFn func(name string) bool
+	if release.AssetPattern == nil {
+		matchFn = MatchAsset
+	} else {
+		matchFn = release.AssetPattern.MatchString
+	}
+
 	for _, asset := range release.Assets {
-		if MatchAsset(asset.Name) {
+		if matchFn(asset.Name) {
 			matchedAssets = append(matchedAssets, asset)
 		}
 	}
 
-	switch len(matchedAssets) {
-	case 0:
-		if len(release.Assets) == 1 {
-			// iamseth/oracledb_exporter: oracledb_exporter.tar.gz
-			matchedAsset = release.Assets[0]
-		} else {
-			var assets Assets
-			for _, asset := range release.Assets {
-				if !isIgnoredFile(asset.Name) {
-					assets = append(assets, asset)
+	if release.AssetPattern == nil {
+		switch len(matchedAssets) {
+		case 0:
+			if len(release.Assets) == 1 {
+				// iamseth/oracledb_exporter: oracledb_exporter.tar.gz
+				matchedAsset = release.Assets[0]
+			} else {
+				var assets Assets
+				for _, asset := range release.Assets {
+					if !isIgnoredFile(asset.Name) {
+						assets = append(assets, asset)
+					}
+				}
+				if len(assets) == 1 {
+					// infraly/openstack_client_exporter: openstack_client_exporter, openstack_client_exporter.sha256sum
+					matchedAsset = assets[0]
+				} else {
+					return "", fmt.Errorf("No valid asset found in assets: %s", assets.JoinName())
 				}
 			}
-			if len(assets) == 1 {
-				// infraly/openstack_client_exporter: openstack_client_exporter, openstack_client_exporter.sha256sum
-				matchedAsset = assets[0]
-			} else {
-				return "", fmt.Errorf("No valid asset found in assets: %s", assets.JoinName())
-			}
-		}
-	case 1:
-		matchedAsset = matchedAssets[0]
-	default:
-		var supportedAssets Assets
-		for _, asset := range matchedAssets {
-			if isSupportedArchiveFormat(asset.Name) {
-				supportedAssets = append(supportedAssets, asset)
-			}
-		}
-
-		switch len(supportedAssets) {
-		case 0:
-			return "", fmt.Errorf("No supported asset found in matched assets: %s", matchedAssets.JoinName())
 		case 1:
-			matchedAsset = supportedAssets[0]
+			matchedAsset = matchedAssets[0]
 		default:
-			return "", fmt.Errorf("Multiple supported assets in matched assets: %s", supportedAssets.JoinName())
-		}
+			var supportedAssets Assets
+			for _, asset := range matchedAssets {
+				if isSupportedArchiveFormat(asset.Name) {
+					supportedAssets = append(supportedAssets, asset)
+				}
+			}
 
+			switch len(supportedAssets) {
+			case 0:
+				return "", fmt.Errorf("No supported asset found in matched assets: %s", matchedAssets.JoinName())
+			case 1:
+				matchedAsset = supportedAssets[0]
+			default:
+				return "", fmt.Errorf("Multiple supported assets in matched assets: %s", supportedAssets.JoinName())
+			}
+		}
+	} else {
+		// match by pattern
+		switch len(matchedAssets) {
+		case 0:
+			return "", fmt.Errorf("No matched asset by pattern in assets")
+		case 1:
+			matchedAsset = matchedAssets[0]
+		default:
+			return "", fmt.Errorf("Multiple matched assets found by pattern in assets: %s", matchedAssets.JoinName())
+		}
 	}
 
 	destPath := filepath.Join(destDir, matchedAsset.Name)

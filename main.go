@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -17,6 +18,7 @@ var (
 	token        string
 	tag          string
 	repo         string
+	pattern      string
 	printVersion bool
 	version      string
 )
@@ -27,6 +29,7 @@ func main() {
 	flag.StringVar(&baseURL, "url", "", "base url, e.g., https://gitlab.example.com")
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.StringVar(&tag, "tag", "", "tag name, v can be omitted")
+	flag.StringVar(&pattern, "pattern", "", "match asset by regexp")
 	flag.BoolVar(&printVersion, "version", false, "print version")
 	flag.Parse()
 
@@ -40,6 +43,16 @@ func main() {
 		os.Exit(1)
 	}
 	repo = flag.Arg(0)
+
+	var (
+		patternRe *regexp.Regexp
+		err       error
+	)
+	if pattern != "" {
+		if patternRe, err = regexp.Compile(pattern); err != nil {
+			log.Fatalf("Invalid pattern: %v", err)
+		}
+	}
 
 	if err := os.MkdirAll(installDir, 0755); err != nil {
 		log.Fatalf("Error creating directory: %v", err)
@@ -63,10 +76,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var (
-		release Release
-		err     error
-	)
+	var release Release
 	if tag == "" {
 		release, err = g.GetLatestRelease()
 	} else {
@@ -89,6 +99,10 @@ func main() {
 	if len(release.Assets) == 0 {
 		log.Print("Empty release assets")
 		return
+	}
+
+	if patternRe != nil {
+		release.AssetPattern = patternRe
 	}
 
 	tempDir, err := os.MkdirTemp("", "release-installer")

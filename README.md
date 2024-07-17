@@ -21,13 +21,13 @@ go install github.com/zachcheung/release-installer@latest
 ## Usage
 
 ```shell
-release-installer [-dir directory] [-provider provider] [-tag tag] [-token token] [-url url] <REPO>
+release-installer [-dir directory] [-pattern asset_pattern] [-provider provider] [-tag tag] [-token token] [-url url] <REPO>
 ```
 
 It is recommended to test in a container before installing a package.
 
 ```shell
-docker run --rm ghcr.io/zachcheung/release-installer -dir /tmp <REPO>
+docker run --rm ghcr.io/zachcheung/release-installer -dir /tmp [OPTIONS] <REPO>
 ```
 
 #### Example
