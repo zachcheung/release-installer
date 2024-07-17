@@ -72,8 +72,7 @@ func main() {
 	case "gitlab":
 		g = NewGitLab(baseURL, token, repo)
 	default:
-		fmt.Printf("unsupported provider: %s\n", provider)
-		os.Exit(1)
+		log.Fatalf("unsupported provider: %s", provider)
 	}
 
 	var release Release
