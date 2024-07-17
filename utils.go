@@ -221,8 +221,10 @@ func httpGet(url string, headers map[string]string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	for key, value := range headers {
-		req.Header.Set(key, value)
+	if headers != nil {
+		for key, value := range headers {
+			req.Header.Set(key, value)
+		}
 	}
 
 	client := &http.Client{}
