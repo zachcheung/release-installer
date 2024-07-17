@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var hashFileRe = regexp.MustCompile(`\.(md5|sha1|sha128|sha256|sha512)(sums?)?\b`)
+var hashFileRe = regexp.MustCompile(`(checksums?|(md5|sha1|sha128|sha256|sha512)(sums?)?)\b`)
 
 // https://github.com/golang/go/blob/go1.22.5/src/go/build/syslist.go
 var knownOS = map[string]bool{
