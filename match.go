@@ -1,11 +1,16 @@
 package main
 
 import (
+	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-var hashFileRe = regexp.MustCompile(`(checksums?|(md5|sha1|sha128|sha256|sha512)(sums?)?)\b`)
+var (
+	hashFileRe = regexp.MustCompile(`(checksums?|(md5|sha1|sha128|sha256|sha512)(sums?)?)\b`)
+	isMusl     = isMuslLibcPresent()
+	muslRe     = regexp.MustCompile(`[ -_\.]musl[ -_\.]?\b`)
+)
 
 // https://github.com/golang/go/blob/go1.22.5/src/go/build/syslist.go
 var knownOS = map[string]bool{
@@ -138,10 +143,14 @@ func containsAlias(name string, aliases []string) bool {
 }
 
 func isIgnoredFile(name string) bool {
-	name = strings.ToLower(name)
-	if hashFileRe.MatchString(name) {
-		return true
-	}
+	return hashFileRe.MatchString(strings.ToLower(name))
+}
 
-	return false
+func containsMusl(name string) bool {
+	return muslRe.MatchString(strings.ToLower(name))
+}
+
+func isMuslLibcPresent() bool {
+	matches, _ := filepath.Glob("/lib/libc.musl-*")
+	return len(matches) > 0
 }

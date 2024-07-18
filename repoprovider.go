@@ -26,13 +26,30 @@ type Asset struct {
 	matchesOS              bool
 	matchesArch            bool
 	supportedArchiveFormat bool
+	libc                   int
 }
 
 func NewAsset(name, url string) *Asset {
-	return newAsset(name, url, runtime.GOOS, runtime.GOARCH)
+	return newAsset(name, url, runtime.GOOS, runtime.GOARCH, isMusl)
 }
 
-func newAsset(name, url, goos, goarch string) *Asset {
+func newAsset(name, url, goos, goarch string, isMusl bool) *Asset {
+	var libc int
+
+	if !isMusl {
+		if !containsMusl(name) {
+			libc = 1
+		} else {
+			libc = 0
+		}
+	} else {
+		if containsMusl(name) {
+			libc = 1
+		} else {
+			libc = 0
+		}
+	}
+
 	return &Asset{
 		Name:                   name,
 		URL:                    url,
@@ -41,6 +58,7 @@ func newAsset(name, url, goos, goarch string) *Asset {
 		matchesOS:              matchesOS(name, goos),
 		matchesArch:            matchesArch(name, goarch),
 		supportedArchiveFormat: isSupportedArchiveFormat(name),
+		libc:                   libc,
 	}
 }
 
@@ -55,6 +73,7 @@ func (a Asset) Weight() int {
 	} {
 		sum += boolToInt(b)
 	}
+	sum += a.libc
 	return sum
 }
 
