@@ -80,11 +80,7 @@ func (g *GitLab) convertRelease(gr GitLabRelease) Release {
 		AuthHeaders: g.authHeaders,
 	}
 	for _, link := range gr.Assets.Links {
-		asset := Asset{
-			Name: link.Name,
-			URL:  link.DirectAssetURL,
-		}
-		r.Assets = append(r.Assets, asset)
+		r.Assets = append(r.Assets, *NewAsset(link.Name, link.DirectAssetURL))
 	}
 	return r
 }

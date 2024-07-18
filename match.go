@@ -2,7 +2,6 @@ package main
 
 import (
 	"regexp"
-	"runtime"
 	"strings"
 )
 
@@ -80,61 +79,6 @@ var knownArchAliases = map[string][]string{
 	},
 }
 
-func MatchAsset(name string) bool {
-	return matchAsset(name, runtime.GOOS, runtime.GOARCH)
-}
-
-func matchAsset(name, goos, goarch string) bool {
-	var matchedOS, matchedArch bool
-	lowerName := strings.ToLower(name)
-
-	if isIgnoredFile(name) {
-		return false
-	}
-
-	containedOS := containsOS(name)
-	containedArch := containsArch(name)
-
-	if containedOS {
-		if strings.Contains(lowerName, goos) {
-			matchedOS = true
-		} else if aliases, ok := knownOSAliases[goos]; ok {
-			if containsAlias(lowerName, aliases) {
-				matchedOS = true
-			}
-		}
-	}
-
-	if containedArch {
-		if strings.Contains(lowerName, goarch) {
-			matchedArch = true
-		} else if aliases, ok := knownArchAliases[goarch]; ok {
-			if containsAlias(lowerName, aliases) {
-				matchedArch = true
-			}
-		}
-	}
-
-	if matchedOS && matchedArch {
-		// node_exporter-1.8.2.linux-arm64.tar.gz
-		return true
-	}
-
-	if !containedOS {
-		if containedArch && matchedArch {
-			// aerospike-prometheus-exporter_1.17.0_x86_64.tgz
-			return true
-		}
-	} else {
-		if matchedOS && !containedArch {
-			// prometheus-exporter-linux-1.0.1.tgz
-			return true
-		}
-	}
-
-	return false
-}
-
 func containsOS(name string) bool {
 	return mapContains(name, knownOS, knownOSAliases)
 }
@@ -159,6 +103,26 @@ func mapContains(name string, m map[string]bool, aliases map[string][]string) bo
 		}
 	}
 
+	return false
+}
+
+func matchesOS(name, goos string) bool {
+	return mapMatches(name, goos, knownOSAliases)
+}
+
+func matchesArch(name, goarch string) bool {
+	return mapMatches(name, goarch, knownArchAliases)
+}
+
+func mapMatches(name, target string, targetAliases map[string][]string) bool {
+	name = strings.ToLower(name)
+	if strings.Contains(name, target) {
+		return true
+	} else if aliases, ok := targetAliases[target]; ok {
+		if containsAlias(name, aliases) {
+			return true
+		}
+	}
 	return false
 }
 

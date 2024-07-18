@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-var ErrNotFound = errors.New("Not Found")
+var ErrNotFound = errors.New("not found")
 
 type ApacheAsset struct {
 	Name string
@@ -137,11 +137,7 @@ func (a *Apache) convertRelease(ar ApacheRelease) Release {
 		TagName: ar.TagName,
 	}
 	for _, aa := range ar.Assets {
-		asset := Asset{
-			Name: aa.Name,
-			URL:  aa.URL,
-		}
-		r.Assets = append(r.Assets, asset)
+		r.Assets = append(r.Assets, *NewAsset(aa.Name, aa.URL))
 	}
 	return r
 }

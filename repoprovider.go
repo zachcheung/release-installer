@@ -1,27 +1,102 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
+	"runtime"
+	"slices"
 	"strings"
 )
 
-var ErrNoRelease = errors.New("No release found")
+var (
+	ErrNoRelease              = errors.New("no release found")
+	ErrNoAsset                = errors.New("no asset found")
+	ErrMultipleMaxWeightAsset = errors.New("multiple max weight assets")
+)
 
 type Asset struct {
-	Name string
-	URL  string
+	Name                   string
+	URL                    string
+	containsOS             bool
+	containsArch           bool
+	matchesOS              bool
+	matchesArch            bool
+	supportedArchiveFormat bool
+}
+
+func NewAsset(name, url string) *Asset {
+	return newAsset(name, url, runtime.GOOS, runtime.GOARCH)
+}
+
+func newAsset(name, url, goos, goarch string) *Asset {
+	return &Asset{
+		Name:                   name,
+		URL:                    url,
+		containsOS:             containsOS(name),
+		containsArch:           containsArch(name),
+		matchesOS:              matchesOS(name, goos),
+		matchesArch:            matchesArch(name, goarch),
+		supportedArchiveFormat: isSupportedArchiveFormat(name),
+	}
+}
+
+func (a Asset) Weight() int {
+	var sum int
+	for _, b := range []bool{
+		a.containsOS,
+		a.containsArch,
+		a.matchesOS,
+		a.matchesArch,
+		a.supportedArchiveFormat,
+	} {
+		sum += boolToInt(b)
+	}
+	return sum
 }
 
 type Assets []Asset
 
+func (as Assets) FindMaxWeightAsset() (Asset, error) {
+	if len(as) == 0 {
+		return Asset{}, ErrNoAsset
+	}
+	// desc
+	slices.SortStableFunc(as, func(a, b Asset) int {
+		return cmp.Compare(b.Weight(), a.Weight())
+	})
+
+	maxWeight := as[0].Weight()
+	for i := 1; i < len(as); i++ {
+		if as[i].Weight() == maxWeight {
+			return Asset{}, fmt.Errorf("%w: %s", ErrMultipleMaxWeightAsset, as.JoinNameWithWeight())
+		} else {
+			break
+		}
+	}
+
+	return as[0], nil
+}
+
 func (as Assets) JoinName() string {
+	return as.joinName(false)
+}
+
+func (as Assets) JoinNameWithWeight() string {
+	return as.joinName(true)
+}
+
+func (as Assets) joinName(withWeight bool) string {
 	names := make([]string, len(as))
 	for i, asset := range as {
-		names[i] = asset.Name
+		if withWeight {
+			names[i] = fmt.Sprintf("%s: %d", asset.Name, asset.Weight())
+		} else {
+			names[i] = asset.Name
+		}
 	}
 	return strings.Join(names, ", ")
 }

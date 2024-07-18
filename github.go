@@ -75,11 +75,7 @@ func (g *GitHub) convertRelease(gr GitHubRelease) Release {
 		} else {
 			url = ga.URL
 		}
-		asset := Asset{
-			Name: ga.Name,
-			URL:  url,
-		}
-		r.Assets = append(r.Assets, asset)
+		r.Assets = append(r.Assets, *NewAsset(ga.Name, url))
 	}
 	return r
 }
