@@ -72,6 +72,7 @@ var knownOSAliases = map[string][]string{
 var knownArchAliases = map[string][]string{
 	"amd64": []string{
 		"x86_64",
+		"x64",
 		"64bit",
 	},
 	"arm64": []string{
