@@ -286,3 +286,30 @@ func isSupportedArchiveFormat(name string) bool {
 	}
 	return false
 }
+
+func compareVersions(v1, v2 string) int {
+	v1 = strings.TrimPrefix(strings.ToLower(v1), "v")
+	v2 = strings.TrimPrefix(strings.ToLower(v2), "v")
+	parts1 := strings.Split(v1, ".")
+	parts2 := strings.Split(v2, ".")
+
+	for i := 0; i < len(parts1) || i < len(parts2); i++ {
+		var num1, num2 int
+
+		if i < len(parts1) {
+			num1, _ = strconv.Atoi(parts1[i])
+		}
+
+		if i < len(parts2) {
+			num2, _ = strconv.Atoi(parts2[i])
+		}
+
+		if num1 < num2 {
+			return -1 // less
+		} else if num1 > num2 {
+			return 1 // greater
+		}
+	}
+
+	return 0 // equal
+}

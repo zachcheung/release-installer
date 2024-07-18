@@ -1,6 +1,6 @@
 # Release Installer
 
-A simple tool to install packages from GitHub/GitLab releases. Tested with most of the [Prometheus exporters](https://github.com/prometheus/docs/blob/c725947ff1f4aac33ea8664c9dc413ab93fd3ab4/content/docs/instrumenting/exporters.md).
+A simple tool to install packages from GitHub/GitLab releases or Apache HTTP server. Tested with most of the [Prometheus exporters](https://github.com/prometheus/docs/blob/c725947ff1f4aac33ea8664c9dc413ab93fd3ab4/content/docs/instrumenting/exporters.md).
 
 ## Installation
 
@@ -68,10 +68,17 @@ The `GITLAB_TOKEN` should be set and have at least the `read_api` scope.
 
 If the value of `-url` contains `gitlab`, the `-provider` can be omitted.
 
+* Apache HTTP Server
+
+```shell
+release-installer -provider apache -url https://mmonit.com/monit/dist/binary/ -pattern 'linux-x64.tar.gz$' monit
+```
+
 #### Supported Providers
 
 * GitHub
 * GitLab
+* Apache HTTP Server
 
 Token is required when repo is private.
 

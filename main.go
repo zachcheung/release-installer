@@ -25,7 +25,7 @@ var (
 
 func main() {
 	flag.StringVar(&installDir, "dir", "/usr/local/bin", "installation directory")
-	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab")
+	flag.StringVar(&provider, "provider", "github", "repo provider, options: github, gitlab, apache")
 	flag.StringVar(&baseURL, "url", "", "base url, e.g., https://gitlab.example.com")
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.StringVar(&tag, "tag", "", "tag name, v can be omitted")
@@ -64,6 +64,9 @@ func main() {
 	if strings.Contains(strings.ToLower(baseURL), "gitlab") && provider == "github" {
 		provider = "gitlab"
 	}
+	if provider == "apache" && baseURL == "" {
+		log.Fatalf("-url is required with apache provider")
+	}
 
 	var g RepoProvider
 	switch provider {
@@ -71,6 +74,8 @@ func main() {
 		g = NewGitHub(token, repo)
 	case "gitlab":
 		g = NewGitLab(baseURL, token, repo)
+	case "apache":
+		g = NewApache(baseURL)
 	default:
 		log.Fatalf("unsupported provider: %s", provider)
 	}
