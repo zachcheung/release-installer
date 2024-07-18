@@ -86,11 +86,6 @@ func MatchAsset(name string) bool {
 func matchAsset(name, goos, goarch string) bool {
 	var matchedOS, matchedArch bool
 	lowerName := strings.ToLower(name)
-
-	if isIgnoredFile(name) {
-		return false
-	}
-
 	containedOS := containsOS(name)
 	containedArch := containsArch(name)
 

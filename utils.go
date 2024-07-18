@@ -131,7 +131,7 @@ func downloadReleaseAsset(release Release, destDir string) (string, error) {
 	}
 
 	for _, asset := range release.Assets {
-		if matchFn(asset.Name) {
+		if !isIgnoredFile(asset.Name) && matchFn(asset.Name) {
 			matchedAssets = append(matchedAssets, asset)
 		}
 	}
