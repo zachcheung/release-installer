@@ -131,12 +131,12 @@ func main() {
 		// use repo base as filename
 		name := filepath.Base(repo)
 		destPath := filepath.Join(installDir, name)
-		if err := copyFile(destPath, fpath); err != nil {
-			log.Fatalf("Error installing package: %v", err)
-		}
-		if err := addExecutePermission(destPath); err != nil {
+		if err := addExecutePermission(fpath); err != nil {
 			log.Fatalf("Error adding execute permission: %v", err)
 		}
-		log.Printf("Installed %s as %s", filepath.Base(fpath), filepath.Join(installDir, name))
+		if err := os.Rename(fpath, destPath); err != nil {
+			log.Fatalf("Error installing package: %v", err)
+		}
+		log.Printf("Installed %s as %s", filepath.Base(fpath), destPath)
 	}
 }

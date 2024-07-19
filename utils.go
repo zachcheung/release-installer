@@ -38,7 +38,9 @@ func urlEncode(s string) string {
 
 func extractAndInstallExecutables(archivePath, destDir string) error {
 	install := func(name string, r io.Reader, mode os.FileMode) error {
-		outFile, err := os.Create(filepath.Join(destDir, filepath.Base(name)))
+		oldpath := filepath.Join(filepath.Dir(archivePath), filepath.Base(name))
+		newpath := filepath.Join(destDir, filepath.Base(name))
+		outFile, err := os.Create(oldpath)
 		if err != nil {
 			return err
 		}
@@ -48,6 +50,10 @@ func extractAndInstallExecutables(archivePath, destDir string) error {
 		defer outFile.Close()
 
 		if err := outFile.Chmod(mode); err != nil {
+			return err
+		}
+
+		if err := os.Rename(oldpath, newpath); err != nil {
 			return err
 		}
 
@@ -174,9 +180,17 @@ func download(url, destPath string, headers map[string]string) error {
 		return fmt.Errorf("Failed to download %s, status code: %d", url, resp.StatusCode)
 	}
 
-	if err := copyReader(destPath, resp.Body); err != nil {
+	file, err := os.Create(destPath)
+	if err != nil {
 		return err
 	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return err
+	}
+
 	log.Printf("Downloaded %s", filename)
 
 	return nil
@@ -195,31 +209,6 @@ func httpGet(url string, headers map[string]string) (*http.Response, error) {
 
 	client := &http.Client{}
 	return client.Do(req)
-}
-
-func copyFile(dst, src string) error {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	return copyReader(dst, srcFile)
-}
-
-func copyReader(dst string, src io.Reader) error {
-	file, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, src)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func addExecutePermission(fpath string) error {
