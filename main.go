@@ -131,6 +131,15 @@ func main() {
 		// use repo base as filename
 		name := filepath.Base(repo)
 		destPath := filepath.Join(installDir, name)
+		isSameFile, err := isIdenticalFile(fpath, destPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if isSameFile {
+			log.Printf("%s is identical, no need to install", destPath)
+			return
+		}
+
 		if err := addExecutePermission(fpath); err != nil {
 			log.Fatalf("Error adding execute permission: %v", err)
 		}

@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"log"
@@ -48,6 +49,15 @@ func extractAndInstallExecutables(archivePath, destDir string) error {
 			return err
 		}
 		defer outFile.Close()
+
+		isSameFile, err := isIdenticalFile(oldpath, newpath)
+		if err != nil {
+			return err
+		}
+		if isSameFile {
+			log.Printf("%s is identical, no need to install", newpath)
+			return nil
+		}
 
 		if err := outFile.Chmod(mode); err != nil {
 			return err
@@ -274,4 +284,35 @@ func boolToInt(b bool) int {
 		return 1
 	}
 	return 0
+}
+
+func isIdenticalFile(src, dst string) (bool, error) {
+	srcHash, err := calculateSHA256(src)
+	if err != nil {
+		return false, err
+	}
+	dstHash, err := calculateSHA256(dst)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return string(srcHash) == string(dstHash), nil
+}
+
+func calculateSHA256(filePath string) ([]byte, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return nil, err
+	}
+
+	return hash.Sum(nil), nil
 }
