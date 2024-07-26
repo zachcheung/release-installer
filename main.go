@@ -19,6 +19,7 @@ var (
 	tag          string
 	repo         string
 	pattern      string
+	exclude      string
 	printVersion bool
 	version      string
 )
@@ -30,6 +31,7 @@ func main() {
 	flag.StringVar(&token, "token", "", "token for private repo")
 	flag.StringVar(&tag, "tag", "", "tag name, v can be omitted")
 	flag.StringVar(&pattern, "pattern", "", "match asset by regexp")
+	flag.StringVar(&exclude, "exclude", "", "exclude binaries of asset by regexp")
 	flag.BoolVar(&printVersion, "version", false, "print version")
 	flag.Parse()
 
@@ -46,11 +48,17 @@ func main() {
 
 	var (
 		patternRe *regexp.Regexp
+		excludeRe *regexp.Regexp
 		err       error
 	)
 	if pattern != "" {
 		if patternRe, err = regexp.Compile(pattern); err != nil {
 			log.Fatalf("Invalid pattern: %v", err)
+		}
+	}
+	if exclude != "" {
+		if excludeRe, err = regexp.Compile(exclude); err != nil {
+			log.Fatalf("Invalid exclude pattern: %v", err)
 		}
 	}
 
@@ -124,7 +132,7 @@ func main() {
 	}
 
 	if isSupportedArchiveFormat(fpath) {
-		if err := extractAndInstallExecutables(fpath, installDir); err != nil {
+		if err := extractAndInstallExecutables(fpath, installDir, excludeRe); err != nil {
 			log.Fatalf("Error installing package: %v", err)
 		}
 	} else {

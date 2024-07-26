@@ -37,8 +37,12 @@ func urlEncode(s string) string {
 	return url.PathEscape(s)
 }
 
-func extractAndInstallExecutables(archivePath, destDir string) error {
+func extractAndInstallExecutables(archivePath, destDir string, excludeRe *regexp.Regexp) error {
 	install := func(name string, r io.Reader, mode os.FileMode) error {
+		if excludeRe != nil && excludeRe.MatchString(name) {
+			return nil
+		}
+
 		oldpath := filepath.Join(filepath.Dir(archivePath), filepath.Base(name))
 		newpath := filepath.Join(destDir, filepath.Base(name))
 		outFile, err := os.Create(oldpath)

@@ -2,6 +2,11 @@
 
 A simple tool to install packages from GitHub/GitLab releases or Apache HTTP server. Tested with most of the [Prometheus exporters](https://github.com/prometheus/docs/blob/c725947ff1f4aac33ea8664c9dc413ab93fd3ab4/content/docs/instrumenting/exporters.md).
 
+## Features
+
+* Support private repo
+* Support GitLab
+
 ## Installation
 
 * install script
@@ -21,7 +26,7 @@ go install github.com/zachcheung/release-installer@latest
 ## Usage
 
 ```shell
-release-installer [-dir directory] [-pattern asset_pattern] [-provider provider] [-tag tag] [-token token] [-url url] <REPO>
+release-installer [-dir directory] [-exclude pattern] [-pattern asset_pattern] [-provider provider] [-tag tag] [-token token] [-url url] <REPO>
 ```
 
 It is recommended to test in a container before installing a package.
@@ -30,7 +35,7 @@ It is recommended to test in a container before installing a package.
 docker run --rm ghcr.io/zachcheung/release-installer -dir /tmp [OPTIONS] <REPO>
 ```
 
-#### Example
+#### Examples
 
 * Public GitHub Repo
 
@@ -72,6 +77,12 @@ If the value of `-url` contains `gitlab`, the `-provider` can be omitted.
 
 ```shell
 release-installer -provider apache -url https://mmonit.com/monit/dist/binary/ -pattern 'linux-x64.tar.gz$' monit
+```
+
+* Exclude Specific Binaries in the Asset
+
+```shell
+release-installer -exclude '/etc/' syncthing/syncthing
 ```
 
 #### Supported Providers
