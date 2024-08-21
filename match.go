@@ -7,9 +7,10 @@ import (
 )
 
 var (
-	hashFileRe = regexp.MustCompile(`(checksums?|(md5|sha1|sha128|sha256|sha512)(sums?)?)\b`)
-	isMusl     = isMuslLibcPresent()
-	muslRe     = regexp.MustCompile(`[ -_\.]musl[ -_\.]?\b`)
+	hashFileRe    = regexp.MustCompile(`(checksums?|(md5|sha1|sha128|sha256|sha512)(sums?)?)\b`)
+	ignoredFileRe = regexp.MustCompile(`\.(txt|json)$`)
+	isMusl        = isMuslLibcPresent()
+	muslRe        = regexp.MustCompile(`[ -_\.]musl[ -_\.]?\b`)
 )
 
 // https://github.com/golang/go/blob/go1.22.5/src/go/build/syslist.go
@@ -143,7 +144,8 @@ func containsAlias(name string, aliases []string) bool {
 }
 
 func isIgnoredFile(name string) bool {
-	return hashFileRe.MatchString(strings.ToLower(name))
+	name = strings.ToLower(name)
+	return hashFileRe.MatchString(name) || ignoredFileRe.MatchString(name)
 }
 
 func containsMusl(name string) bool {

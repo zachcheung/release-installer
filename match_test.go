@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestHashFileRe(t *testing.T) {
+func TestIsIgnoredFile(t *testing.T) {
 	tests := []struct {
 		filename string
 		expected bool
@@ -14,10 +14,11 @@ func TestHashFileRe(t *testing.T) {
 		{"checksums.txt", true},
 		{"checksum.json", true},
 		{"sha256sums.txt", true},
+		{"sops-v3.9.0.linux.amd64", false},
 	}
 
 	for _, test := range tests {
-		match := hashFileRe.MatchString(test.filename)
+		match := isIgnoredFile(test.filename)
 		if match != test.expected {
 			t.Errorf("For filename %s, expected %v, but got %v", test.filename, test.expected, match)
 		}
