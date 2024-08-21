@@ -91,7 +91,15 @@ func (as Assets) FindMaxWeightAsset() (Asset, error) {
 	maxWeight := as[0].Weight()
 	for i := 1; i < len(as); i++ {
 		if as[i].Weight() == maxWeight {
-			return Asset{}, fmt.Errorf("%w: %s", ErrMultipleMaxWeightAsset, as.JoinNameWithWeight())
+			var maxAs Assets
+			for _, v := range as {
+				if v.Weight() == maxWeight {
+					maxAs = append(maxAs, v)
+				} else {
+					break
+				}
+			}
+			return Asset{}, fmt.Errorf("%w: %s", ErrMultipleMaxWeightAsset, maxAs.JoinNameWithWeight())
 		} else {
 			break
 		}
