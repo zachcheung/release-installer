@@ -303,7 +303,10 @@ func isIdenticalFile(src, dst string) (bool, error) {
 		return false, err
 	}
 
-	return string(srcHash) == string(dstHash), nil
+	srcFile, _ := os.Stat(src)
+	dstFile, _ := os.Stat(dst)
+
+	return (string(srcHash) == string(dstHash)) && (srcFile.Mode() == dstFile.Mode()), nil
 }
 
 func calculateSHA256(filePath string) ([]byte, error) {
