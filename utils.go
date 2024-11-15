@@ -49,10 +49,14 @@ func extractAndInstallExecutables(archivePath, destDir string, excludeRe *regexp
 		if err != nil {
 			return err
 		}
+		defer outFile.Close()
 		if _, err := io.Copy(outFile, r); err != nil {
 			return err
 		}
-		defer outFile.Close()
+
+		if err := outFile.Chmod(mode); err != nil {
+			return err
+		}
 
 		isSameFile, err := isIdenticalFile(oldpath, newpath)
 		if err != nil {
@@ -63,11 +67,8 @@ func extractAndInstallExecutables(archivePath, destDir string, excludeRe *regexp
 			return nil
 		}
 
-		if err := outFile.Chmod(mode); err != nil {
-			return err
-		}
-
-		if err := os.Rename(oldpath, newpath); err != nil {
+		// os.Rename() may cause "invalid cross-device link" error
+		if err := moveFile(oldpath, newpath); err != nil {
 			return err
 		}
 
@@ -322,4 +323,36 @@ func calculateSHA256(filePath string) ([]byte, error) {
 	}
 
 	return hash.Sum(nil), nil
+}
+
+func moveFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	fileInfo, err := srcFile.Stat()
+	if err != nil {
+		return err
+	}
+	mode := fileInfo.Mode()
+
+	dir := filepath.Dir(dst)
+	pattern := fmt.Sprintf(".%s.*", filepath.Base(dst))
+	tempFile, err := os.CreateTemp(dir, pattern)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tempFile.Name())
+
+	if _, err := io.Copy(tempFile, srcFile); err != nil {
+		return err
+	}
+
+	if err := tempFile.Chmod(mode); err != nil {
+		return err
+	}
+
+	return os.Rename(tempFile.Name(), dst)
 }
