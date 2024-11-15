@@ -49,5 +49,5 @@ curl -fsSL https://api.github.com/repos/$gh_owner/$gh_repo/releases/latest \
     echo "downloaded $name"
     echo "installing $bin"
     tar xf "$name"
-    find . -type f -perm -u=x -exec sh -c 'mv -v "$1" "$2" && chown root:root "$2/$(basename "$1")"' _ {} "$install_dir" \;
+    find . -type f -perm -u=x -exec sh -c 'mv -v "$1" "$2" && chown $(id -u):$(id -G) "$2/$(basename "$1")"' _ {} "$install_dir" \;
   done
